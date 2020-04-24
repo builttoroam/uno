@@ -270,6 +270,7 @@ namespace Uno.UI.Controls
 				var sampleSize = CalculateInSampleSize(options, _targetWidth, _targetHeight);
 
 				options.InJustDecodeBounds = false;
+#pragma warning disable CS0618 // Type or member is obsolete
 				options.InPurgeable = true;
 				options.InSampleSize = sampleSize;
 
