@@ -29,7 +29,7 @@ namespace Microsoft.Toolkit.Uwp.UI.Lottie
 		{
 			if(player != _player)
 			{
-				player.RegisterHtmlEventHandler("lottie_state", (EventHandler)OnStateChanged);
+				player.RegisterHtmlCustomEventHandler("lottie_state", OnStateChanged, isDetailJson: false);
 			}
 
 			_player = player;
@@ -53,13 +53,25 @@ namespace Microsoft.Toolkit.Uwp.UI.Lottie
 			_isPlaying = player.AutoPlay;
 		}
 
-		private void OnStateChanged(object sender, EventArgs e)
+		private void OnStateChanged(object sender, HtmlCustomEventArgs e)
 		{
-			var r = WebAssemblyRuntime.InvokeJS("Uno.UI.Lottie.getAnimationState(" + _player.HtmlId + ");");
+			//var r = WebAssemblyRuntime.InvokeJS("Uno.UI.Lottie.getAnimationState(" + _player.HtmlId + ");");
 
-			var parts = r.Split('|');
-			var w = double.Parse(parts[0]);
-			var h = double.Parse(parts[1]);
+			ParseStateString(e.Detail);
+		}
+
+		private void ParseStateString(string stateString)
+		{
+			var parts = stateString.Split('|');
+			var w = double.Parse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture);
+			var h = double.Parse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture);
+			var loaded = parts[2].Equals("true", StringComparison.Ordinal);
+			var paused = parts[3].Equals("true", StringComparison.Ordinal);
+			var duration = double.Parse(parts[4], NumberStyles.Float, CultureInfo.InvariantCulture);
+
+			_player.SetValue(AnimatedVisualPlayer.IsAnimatedVisualLoadedProperty, loaded);
+			_player.SetValue(AnimatedVisualPlayer.IsPlayingProperty, !paused);
+			_player.SetValue(AnimatedVisualPlayer.DurationProperty, TimeSpan.FromSeconds(duration));
 
 			_compositionSize = new Size(w, h);
 		}
